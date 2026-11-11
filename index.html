@@ -1,14 +1,51 @@
 <!doctype html>
-<html lang="zh-Hans">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zixuan Li</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+    <meta
+      name="description"
+      content="Zixuan Li (李紫玄), product designer in Dublin. Product design, visual art, AI-assisted builds and video."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" as="image" href="/portrait-480.webp" fetchpriority="high" />
+    <script>
+      // Pick the theme before first paint. A saved choice wins, then the system setting.
+      var t = null
+      try { t = localStorage.getItem('theme') } catch (e) {}
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      document.documentElement.dataset.theme = t
+    </script>
+    <style>
+      /* First paint, before any script: the ground and the portrait at the centre of the orbit.
+         Position and size mirror ORBIT.layout in src/orbit/configs.js. */
+      html { background: #edebe6; }
+      html[data-theme='dark'] { background: #111110; }
+      body { margin: 0; }
+      #boot {
+        position: fixed;
+        left: 76vw;
+        top: 60vh;
+        top: 60dvh;
+        --d: calc(max(60vw, 86vh) / 4.1);
+        --d: calc(max(60vw, 86dvh) / 4.1);
+        width: var(--d);
+        height: var(--d);
+        margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2);
+        border-radius: 50%;
+        object-fit: cover;
+        filter: grayscale(1);
+        box-shadow: 0 0 0 0.75px #3d3b38;
+      }
+      html[data-theme='dark'] #boot { box-shadow: 0 0 0 0.75px #bdb9b2; }
+      @media (max-width: 719px) {
+        #boot { left: 66vw; top: 77vh; top: 77dvh; --d: calc(105vw / 4.1); }
+      }
+    </style>
   </head>
   <body>
+    <img id="boot" src="/portrait-480.webp" alt="" width="480" height="480" />
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -1,0 +1,3 @@
+{
+  "rewrites": [{ "source": "/(product-design|visual-art|builds|video|about)", "destination": "/index.html" }]
+}

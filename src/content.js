@@ -70,7 +70,7 @@ export const SECTIONS = [
     id: 'video',
     title: 'Video',
     kind: 'links',
-    works: [{ title: 'Zi AI Lab', line: 'YouTube channel on AI, design and building in public.', href: null }],
+    works: [{ title: 'Zi AI Lab', line: 'YouTube channel on AI, design and building in public.', href: 'https://www.youtube.com/channel/UCs_6s2cU4p-K4SpLMRTWBkQ' }],
   },
 ].map((section) => {
   const n = section.works.length

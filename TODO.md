@@ -17,7 +17,6 @@ Content lives in `src/content.js`.
 | Product Design → GoContractor, design system and file library | Problem, my decisions, outcome |
 | Visual / Art → East Asia Electronic Festival posters | Poster images. Three frames are placeholders; the real count is yours. |
 | Visual / Art → Game art 2007—2015 | Images. Six frames are placeholders. |
-| Video → Zi AI Lab | Channel link |
 
 To add a link, set `href` on the work. To add images, tell Claude where the files are.
 

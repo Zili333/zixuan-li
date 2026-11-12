@@ -168,12 +168,42 @@ export class OrbitEngine {
   }
 
   frame() {
+    const c = this.project([0, 0, 0])
     const planets = this.planets.map((planet, i) => {
       const p = this.project(this.planetWorld(i))
-      return { x: p.x, y: p.y, r: Math.max(planet.size * p.s, 3), visible: p.depth > 0.2 }
+      // front: nearer to the camera than the portrait, which stands at the centre of the system.
+      return { x: p.x, y: p.y, r: Math.max(planet.size * p.s, 3), visible: p.depth > 0.2, front: p.depth < c.depth }
     })
-    const c = this.project([0, 0, 0])
     return { planets, portrait: { x: c.x, y: c.y, r: (this.cfg.portrait ?? 1) * c.s, visible: c.depth > 0.2 } }
+  }
+
+  // The parts of the rings that pass in front of the portrait, as SVG path data.
+  // The portrait covers the drawn rings; these are laid back over it so near arcs cross the face
+  // and far arcs stay hidden behind it.
+  frontPaths() {
+    const c = this.project([0, 0, 0])
+    const reach = ((this.cfg.portrait ?? 1) * c.s * 1.08) ** 2
+    const near = (q) => q.depth > 0.2 && q.depth < c.depth && (q.x - c.x) ** 2 + (q.y - c.y) ** 2 < reach
+    const xy = (q) => `${q.x.toFixed(1)} ${q.y.toFixed(1)}`
+    const rings = this.geometry.rings.map((ring) => {
+      const pts = ring.points.map((p) => this.project(this.toWorld(p)))
+      let d = ''
+      for (let i = 0; i < pts.length; i++) {
+        const a = pts[i]
+        const b = pts[(i + 1) % pts.length]
+        if (near(a) || near(b)) d += `M${xy(a)}L${xy(b)}`
+      }
+      return d
+    })
+    const dots = this.geometry.dots.map((set) => {
+      let d = ''
+      for (const p of set.points) {
+        const q = this.project(this.toWorld(p))
+        if (near(q)) d += `M${xy(q)}h0`
+      }
+      return d
+    })
+    return { rings, dots }
   }
 
   // Static SVG data for the current pose.

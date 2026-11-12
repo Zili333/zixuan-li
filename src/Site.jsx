@@ -11,7 +11,7 @@ import { ABOUT, SECTIONS, STATEMENT } from './content.js'
 import { currentRoute, go, hrefFor, onRoute, pushedHere } from './router.js'
 
 const ORBIT = makeOrbit()
-const PLANETS = SECTIONS.map((s) => ({ key: s.id, title: s.title, sectionTitle: s.countLabel }))
+const PLANETS = SECTIONS.map((s) => ({ key: s.id, title: s.title }))
 
 // Route name -> what is open: a section index, 'about', or null for the orbit.
 function targetOf(route) {
@@ -133,7 +133,6 @@ function Nav({ hovered, onHover, onOpen, linkRefs, tabbable }) {
               }}
             >
               {section.title}
-              <span className="px">{section.count}</span>
             </a>
           </li>
         ))}

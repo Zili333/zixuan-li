@@ -1,4 +1,4 @@
-import { Suspense, forwardRef, lazy, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, forwardRef, lazy, useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { OrbitEngine } from './engine.js'
 import { startSand } from '../portrait/sand.js'
 
@@ -43,6 +43,10 @@ const OrbitStage = forwardRef(function OrbitStage(
   const portraitImg = useRef(null)
   const sandCanvas = useRef(null)
   const sandRef = useRef(null)
+  const frontClip = useRef(null)
+  const frontRings = useRef([])
+  const frontDots = useRef([])
+  const clipId = useId().replace(/[^a-zA-Z0-9]/g, '')
   const live = mode === 'live' && introDone
   const liveRef = useRef(live)
   liveRef.current = live
@@ -62,6 +66,9 @@ const OrbitStage = forwardRef(function OrbitStage(
       el.style.transform = `translate3d(${p.x.toFixed(2)}px, ${p.y.toFixed(2)}px, 0)`
       el.style.setProperty('--d', `${(p.r * 2).toFixed(2)}px`)
       el.style.visibility = p.visible ? '' : 'hidden'
+      // A planet on the far side of its orbit passes behind the portrait; on the near side, in front.
+      const layer = p.front ? '4' : '1'
+      if (el.style.zIndex !== layer) el.style.zIndex = layer
       // Labels open away from the portrait, unless that runs off the screen.
       let side = p.x >= fr.portrait.x ? 'right' : 'left'
       if (side === 'right' && p.x > engine.w - 170) side = 'left'
@@ -73,6 +80,22 @@ const OrbitStage = forwardRef(function OrbitStage(
       el.style.transform = `translate3d(${fr.portrait.x.toFixed(2)}px, ${fr.portrait.y.toFixed(2)}px, 0)`
       el.style.setProperty('--d', `${(fr.portrait.r * 2).toFixed(2)}px`)
       el.style.visibility = fr.portrait.visible ? '' : 'hidden'
+    }
+    // Near arcs of the rings are redrawn over the portrait, clipped to its circle.
+    const clip = frontClip.current
+    if (clip) {
+      clip.setAttribute('cx', fr.portrait.x.toFixed(2))
+      clip.setAttribute('cy', fr.portrait.y.toFixed(2))
+      clip.setAttribute('r', Math.max(0, fr.portrait.r).toFixed(2))
+      const front = engine.frontPaths()
+      front.rings.forEach((d, i) => {
+        const el = frontRings.current[i]
+        if (el && el.getAttribute('d') !== d) el.setAttribute('d', d)
+      })
+      front.dots.forEach((d, i) => {
+        const el = frontDots.current[i]
+        if (el && el.getAttribute('d') !== d) el.setAttribute('d', d)
+      })
     }
     onFrameRef.current?.(fr, engine)
     if (engine.moved !== movedRef.current) {
@@ -255,6 +278,33 @@ const OrbitStage = forwardRef(function OrbitStage(
         <canvas ref={sandCanvas} className="portrait-sand" aria-hidden="true" />
       </button>
 
+      <svg className="orbit-front" aria-hidden="true" width="100%" height="100%">
+        <clipPath id={`front-${clipId}`}>
+          <circle ref={frontClip} />
+        </clipPath>
+        <g clipPath={`url(#front-${clipId})`}>
+          {engine.geometry.rings.map((ring, i) => (
+            <path
+              key={`r${i}`}
+              ref={(el) => {
+                frontRings.current[i] = el
+              }}
+              className={`of-ring tone-${ring.tone}`}
+            />
+          ))}
+          {engine.geometry.dots.map((set, i) => (
+            <path
+              key={`d${i}`}
+              ref={(el) => {
+                frontDots.current[i] = el
+              }}
+              className={`of-dots tone-${set.tone}`}
+              style={{ strokeWidth: set.size }}
+            />
+          ))}
+        </g>
+      </svg>
+
       {works.map((work, i) => (
         <button
           key={work.key}
@@ -293,7 +343,6 @@ const OrbitStage = forwardRef(function OrbitStage(
           <span className="node-dot" />
           <span className="node-label">
             <span className="node-name">{work.title}</span>
-            <span className="px node-count">{work.sectionTitle}</span>
             <span className="px node-open">tap to open</span>
           </span>
         </button>

@@ -187,9 +187,30 @@ button {
   }
 }
 
+/* Depth, back to front: rings, far planets (1), portrait (2), near arcs of the rings (3),
+   near planets (4). Set per frame from where each body is on its orbit. */
+.orbit-front {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  animation: appear 0.4s linear 1.6s forwards;
+}
+.orbit-front path {
+  fill: none;
+}
+.of-ring {
+  stroke-width: 0.8;
+}
+.of-dots {
+  stroke-linecap: square;
+}
+
 /* Portrait: the centre of the system. Always grayscale. */
 .portrait {
   position: absolute;
+  z-index: 2;
   left: 0;
   top: 0;
   width: var(--d, 120px);
@@ -294,7 +315,7 @@ button {
   translate: 0 -50%;
 }
 .node-name {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.005em;
@@ -309,6 +330,7 @@ button {
 
 .hint {
   position: absolute;
+  z-index: 5;
   left: calc(var(--edge) - 8px);
   bottom: calc(var(--edge) - 5px);
   color: var(--ink-2);
@@ -597,9 +619,7 @@ button {
 .nav-list.has-hover .nav-link:not(.is-on) .px {
   color: var(--ink-3);
 }
-.nav-link.is-on .px {
-  color: var(--zhu);
-}
+
 .nav-link:focus-visible {
   outline: none;
 }
@@ -967,6 +987,7 @@ button {
   .node,
   .hint,
   .seal,
+  .orbit-front,
   .lishu-stroke,
   .lishu-wipe {
     animation: none !important;

@@ -442,12 +442,6 @@ button {
 
 /* ---------- Index: the four sections, set large ---------- */
 
-.index {
-  position: absolute;
-  z-index: 4;
-  left: var(--edge);
-  bottom: calc(var(--edge) + 34px);
-}
 .index-list {
   display: grid;
   justify-items: start;
@@ -512,6 +506,70 @@ button {
   stroke-width: 0.75;
 }
 
+/* ---------- Statement: one sentence, set large ---------- */
+
+.statement {
+  position: absolute;
+  z-index: 3;
+  left: var(--edge);
+  bottom: calc(var(--edge) + 44px);
+  display: grid;
+  justify-items: start;
+  margin: 0;
+  font-size: clamp(24px, min(3.1vw, 5.8vh), 64px);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ---------- Nav: the four sections, small ---------- */
+
+.nav {
+  position: absolute;
+  z-index: 6;
+  top: calc(var(--edge) - 10px);
+  right: calc(var(--edge) + 92px);
+}
+.nav-list {
+  display: flex;
+  gap: clamp(14px, 2vw, 30px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nav-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color 0.2s linear;
+}
+.nav-link .px {
+  font-size: 9px;
+  line-height: 10px;
+  color: var(--ink-2);
+  transition: color 0.2s linear;
+}
+.nav-list.has-hover .nav-link:not(.is-on),
+.nav-list.has-hover .nav-link:not(.is-on) .px {
+  color: var(--ink-3);
+}
+.nav-link.is-on .px {
+  color: var(--zhu);
+}
+.nav-link:focus-visible {
+  outline: none;
+}
+
 /* ---------- Theme toggle ---------- */
 
 .theme-toggle {
@@ -538,14 +596,16 @@ button {
 /* Home steps back while the camera travels. */
 .id,
 .hint,
-.index,
+.statement,
+.nav,
 .node-label,
 .leader {
   transition: opacity 0.35s linear;
 }
 .site:not(.is-idle) .id,
 .site:not(.is-idle) .hint,
-.site:not(.is-idle) > .index,
+.site:not(.is-idle) .statement,
+.site:not(.is-idle) .nav,
 .site:not(.is-idle) .leader,
 .site:not(.is-idle) .node-label {
   opacity: 0 !important;
@@ -801,20 +861,35 @@ button {
   padding-top: 22px;
   border-top: 0.75px solid var(--line);
 }
-.panel-foot .index {
-  position: static;
-}
 .panel-foot .index-row {
   font-size: clamp(34px, min(6vw, 10vh), 104px);
 }
 
 @media (max-width: 719px) {
-  .index {
-    bottom: auto;
-    top: calc(var(--edge) + 96px);
+  .nav {
+    top: calc(var(--edge) + 62px);
+    left: var(--edge);
+    right: var(--edge);
   }
-  .index-row {
-    font-size: clamp(34px, 12.4vw, 60px);
+  .nav-list {
+    flex-wrap: wrap;
+    gap: 0 12px;
+  }
+  .nav-link {
+    padding: 7px 0;
+  }
+  .statement {
+    display: block;
+    bottom: auto;
+    top: calc(var(--edge) + 142px);
+    right: var(--edge);
+    font-size: clamp(22px, 6.6vw, 34px);
+    line-height: 1.14;
+    white-space: normal;
+  }
+  /* Narrow screens keep the first break (the name on its own line) and wrap the rest. */
+  .statement span:first-child {
+    display: block;
   }
   .hint {
     left: 50%;
@@ -870,7 +945,9 @@ button {
   .node-dot,
   .node-label,
   .id,
-  .index,
+  .statement,
+  .nav,
+  .nav-link,
   .index-row,
   .leader {
     transition: none !important;

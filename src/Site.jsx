@@ -2,12 +2,15 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import '@fontsource-variable/instrument-sans/wght.css'
 import '@fontsource/geist-pixel/latin-400.css'
 import './site.css'
-import { ORBIT } from './orbit/configs.js'
+import { makeOrbit } from './orbit/configs.js'
 import OrbitStage from './orbit/OrbitStage.jsx'
 import LishuName from './name/LishuName.jsx'
 import { PALETTE, useTheme } from './theme.js'
-import { ABOUT, SECTIONS } from './content.js'
+import { ABOUT, SECTIONS, STATEMENT } from './content.js'
 import { currentRoute, go, hrefFor, onRoute, pushedHere } from './router.js'
+
+const ORBIT = makeOrbit()
+const PLANETS = SECTIONS.map((s) => ({ key: s.id, title: s.title, sectionTitle: s.countLabel }))
 
 // Route name -> what is open: a section index, 'about', or null for the orbit.
 function targetOf(route) {
@@ -53,7 +56,7 @@ function ThemeToggle({ theme, onToggle }) {
 // The pointer wins: focus lets go.
 function releaseFocus(keep) {
   const active = document.activeElement
-  if (active && active !== keep && active.matches?.('.index-row, .node')) active.blur()
+  if (active && active !== keep && active.matches?.('.index-row, .nav-link, .node')) active.blur()
 }
 
 // The four sections as large type. Used on the home screen and at the foot of every panel.
@@ -94,6 +97,45 @@ function Index({ label, current = null, hovered = null, onHover, onOpen, rowRefs
             </li>
           )
         })}
+      </ul>
+    </nav>
+  )
+}
+
+// The four sections, small, at the top right of the home screen.
+function Nav({ hovered, onHover, onOpen, linkRefs, tabbable }) {
+  return (
+    <nav className="nav" aria-label="Sections" data-nodrag>
+      <ul className={hovered == null ? 'nav-list' : 'nav-list has-hover'}>
+        {SECTIONS.map((section, i) => (
+          <li key={section.id}>
+            <a
+              ref={(el) => {
+                linkRefs.current[i] = el
+              }}
+              href={hrefFor(section.id)}
+              className={hovered === i ? 'nav-link is-on' : 'nav-link'}
+              tabIndex={tabbable ? 0 : -1}
+              draggable="false"
+              onPointerEnter={(e) => {
+                if (e.pointerType !== 'mouse') return
+                releaseFocus(e.currentTarget)
+                onHover(i)
+              }}
+              onPointerLeave={(e) => e.pointerType === 'mouse' && onHover(null)}
+              onFocus={() => onHover(i)}
+              onBlur={() => onHover(null)}
+              onClick={(event) => {
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return
+                event.preventDefault()
+                onOpen(i)
+              }}
+            >
+              {section.title}
+              <span className="px">{section.count}</span>
+            </a>
+          </li>
+        ))}
       </ul>
     </nav>
   )
@@ -364,8 +406,8 @@ export default function Site() {
     if (!row || !line) return
     const rect = row.getBoundingClientRect()
     const p = frame.planets[i]
-    const x1 = rect.right + 14
-    const y1 = rect.top + rect.height * 0.52
+    const x1 = rect.left + rect.width / 2
+    const y1 = rect.bottom + 6
     const len = Math.hypot(p.x - x1, p.y - y1) || 1
     const stop = Math.max(0, len - p.r - 7)
     line.setAttribute('x1', x1)
@@ -381,11 +423,11 @@ export default function Site() {
       <OrbitStage
         ref={stage}
         cfg={ORBIT}
-        sections={SECTIONS}
+        works={PLANETS}
         colors={PALETTE[theme]}
         hovered={hovered}
+        lit={[hovered, typeof panel === 'number' && !idle ? panel : null].filter((i) => i != null)}
         labelled={hover.from === 'node' ? hovered : null}
-        selected={typeof panel === 'number' && !idle ? panel : null}
         onHover={setHoveredNode}
         onSelect={open}
         onPortrait={() => open('about')}
@@ -408,7 +450,13 @@ export default function Site() {
         </div>
       </header>
 
-      <Index label="Sections" hovered={hovered} onHover={setHovered} onOpen={open} rowRefs={rowRefs} tabbable={idle} />
+      <p className="statement">
+        {STATEMENT.map((line) => (
+          <span key={line}>{line} </span>
+        ))}
+      </p>
+
+      <Nav hovered={hovered} onHover={setHovered} onOpen={open} linkRefs={rowRefs} tabbable={idle} />
 
       <ThemeToggle theme={theme} onToggle={toggle} />
 

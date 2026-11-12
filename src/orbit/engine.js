@@ -32,6 +32,15 @@ export class OrbitEngine {
     this.vYaw = 0
     this.dragging = false
     this.angles = cfg.rings.map((r) => r.phase)
+    // One planet per work. A ring carries as many planets as its section has works.
+    this.planets = cfg.rings.flatMap((ring, r) =>
+      (ring.planets ?? [{}]).map((p) => ({
+        ring: r,
+        offset: p.offset ?? 0,
+        size: p.size ?? ring.size,
+        look: p.look ?? ring.look,
+      })),
+    )
     this.speed = 1
     this.targetSpeed = 1
     this.w = 1
@@ -81,8 +90,9 @@ export class OrbitEngine {
   }
 
   planetWorld(i) {
-    const ring = this.cfg.rings[i]
-    return this.toWorld(planePoint(ring, ring.r, this.angles[i]))
+    const planet = this.planets[i]
+    const ring = this.cfg.rings[planet.ring]
+    return this.toWorld(planePoint(ring, ring.r, this.angles[planet.ring] + planet.offset))
   }
 
   project(p, view = this.view) {
@@ -158,9 +168,9 @@ export class OrbitEngine {
   }
 
   frame() {
-    const planets = this.cfg.rings.map((ring, i) => {
+    const planets = this.planets.map((planet, i) => {
       const p = this.project(this.planetWorld(i))
-      return { x: p.x, y: p.y, r: Math.max(ring.size * p.s, 3), visible: p.depth > 0.2 }
+      return { x: p.x, y: p.y, r: Math.max(planet.size * p.s, 3), visible: p.depth > 0.2 }
     })
     const c = this.project([0, 0, 0])
     return { planets, portrait: { x: c.x, y: c.y, r: (this.cfg.portrait ?? 1) * c.s, visible: c.depth > 0.2 } }

@@ -23,7 +23,7 @@ function canRunLive() {
 }
 
 const OrbitStage = forwardRef(function OrbitStage(
-  { cfg, sections, colors, hovered, labelled, selected, onHover, onSelect, onPortrait, idle, reduced, onFrame },
+  { cfg, works, colors, lit, labelled, onHover, onSelect, onPortrait, idle, reduced, onFrame },
   ref,
 ) {
   const engine = useMemo(() => {
@@ -99,14 +99,15 @@ const OrbitStage = forwardRef(function OrbitStage(
   }, [reduced])
 
   // Orbits hold still while a node is hovered or focused, so the target does not drift away.
+  const anyLit = lit.length > 0
   useEffect(() => {
-    engine.targetSpeed = hovered == null ? 1 : 0
-  }, [engine, hovered])
+    engine.targetSpeed = anyLit ? 0 : 1
+  }, [engine, anyLit])
 
   useEffect(() => {
     const onDown = (event) => {
       const el = event.target instanceof Element ? event.target : null
-      if (event.pointerType === 'touch' && !el?.closest('.node, .index')) onHoverRef.current(null)
+      if (event.pointerType === 'touch' && !el?.closest('.node, .nav')) onHoverRef.current(null)
       if (!liveRef.current || !idleRef.current) return
       if (event.button !== undefined && event.button !== 0) return
       if (event.target instanceof Element && event.target.closest('[data-nodrag]')) return
@@ -150,7 +151,7 @@ const OrbitStage = forwardRef(function OrbitStage(
         const { w, h } = engine
         const short = Math.min(w, h)
         if (index < 0) engine.flyTo([0, 0, 0], cfg.portrait ?? 1, short * 0.62, w / 2, h / 2, 1.0, onDone)
-        else engine.flyTo(engine.planetWorld(index), cfg.rings[index].size, short * 0.34, w / 2, h / 2, 1.15, onDone)
+        else engine.flyTo(engine.planetWorld(index), engine.planets[index].size, short * 0.34, w / 2, h / 2, 1.15, onDone)
         return undefined
       },
       flyBack(onDone) {
@@ -213,27 +214,32 @@ const OrbitStage = forwardRef(function OrbitStage(
         <img src={`${import.meta.env.BASE_URL}portrait-480.webp`} alt="" width="480" height="480" decoding="async" fetchPriority="high" draggable="false" />
       </button>
 
-      {sections.map((section, i) => (
+      {works.map((work, i) => (
         <button
-          key={section.id}
+          key={work.key}
           ref={(el) => {
             nodeRefs.current[i] = el
           }}
           type="button"
-          className={['node', cfg.rings[i].look === 'hollow' ? 'is-hollow' : '', hovered === i || selected === i ? 'is-on' : '', labelled === i ? 'is-labelled' : ''].join(' ')}
+          className={[
+            'node',
+            engine.planets[i].look === 'hollow' ? 'is-hollow' : '',
+            lit.includes(i) ? 'is-on' : '',
+            labelled === i ? 'is-labelled' : '',
+          ].join(' ')}
           style={{ '--i': i }}
           data-nodrag
           tabIndex={idle ? 0 : -1}
           onPointerEnter={(e) => {
             if (e.pointerType !== 'mouse') return
             const active = document.activeElement
-            if (active && active !== e.currentTarget && active.matches?.('.index-row, .node')) active.blur()
+            if (active && active !== e.currentTarget && active.matches?.('.nav-link, .node')) active.blur()
             onHover(i)
           }}
           onPointerLeave={(e) => e.pointerType === 'mouse' && onHover(null)}
           onPointerDown={(e) => {
             // Touch has no hover: the first tap names the planet, the second opens it.
-            tap.current = e.pointerType === 'touch' && hovered !== i ? 'name' : 'open'
+            tap.current = e.pointerType === 'touch' && labelled !== i ? 'name' : 'open'
           }}
           onFocus={() => onHover(i)}
           onBlur={() => onHover(null)}
@@ -245,8 +251,8 @@ const OrbitStage = forwardRef(function OrbitStage(
         >
           <span className="node-dot" />
           <span className="node-label">
-            <span className="node-name">{section.title}</span>
-            <span className="px node-count">{section.countLabel}</span>
+            <span className="node-name">{work.title}</span>
+            <span className="px node-count">{work.sectionTitle}</span>
             <span className="px node-open">tap to open</span>
           </span>
         </button>
@@ -254,7 +260,7 @@ const OrbitStage = forwardRef(function OrbitStage(
 
       <div className="hint" data-nodrag>
         {mode === 'static' && introDone ? (
-          <span className="hint-text">Select a planet to open a section</span>
+          <span className="hint-text">Select a planet to open a work</span>
         ) : moved ? (
           <button type="button" className="hint-reset" onClick={() => engine.reset()} tabIndex={idle ? 0 : -1}>
             Reset view

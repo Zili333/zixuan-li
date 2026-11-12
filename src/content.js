@@ -78,6 +78,15 @@ export const SECTIONS = [
   return { ...section, count, countLabel: `${count} ${n === 1 ? 'work' : 'works'}` }
 })
 
+// The one-sentence introduction on the home screen, split where the lines break.
+// Set flush left, with no punctuation beyond the apostrophe.
+export const STATEMENT = [
+  'Zixuan Li',
+  'is a designer and builder',
+  'in Dublin with an artist’s eye',
+  'and a habit of shipping what he draws',
+]
+
 // Existing "Who am I?" copy, unchanged.
 export const ABOUT = {
   id: 'about',

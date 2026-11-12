@@ -1,5 +1,6 @@
 import { Suspense, forwardRef, lazy, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { OrbitEngine } from './engine.js'
+import { startSand } from '../portrait/sand.js'
 
 const LiveOrbit = lazy(() => import('./LiveOrbit.jsx'))
 
@@ -39,6 +40,9 @@ const OrbitStage = forwardRef(function OrbitStage(
   const nodeRefs = useRef([])
   const tap = useRef('open')
   const portraitRef = useRef(null)
+  const portraitImg = useRef(null)
+  const sandCanvas = useRef(null)
+  const sandRef = useRef(null)
   const live = mode === 'live' && introDone
   const liveRef = useRef(live)
   liveRef.current = live
@@ -90,6 +94,33 @@ const OrbitStage = forwardRef(function OrbitStage(
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [engine])
+
+  // Sand drifts through the hair and clothes of the portrait. It rests when the home
+  // screen is not showing, when the tab is hidden, and for reduced motion.
+  useEffect(() => {
+    if (reduced) return undefined
+    const img = portraitImg.current
+    let sand = null
+    const begin = () => {
+      sand = startSand(sandCanvas.current, img, { light: '#edebe6', dark: '#151413' })
+      sand.pause?.(!idleRef.current || document.hidden)
+      sandRef.current = sand
+    }
+    if (img.complete && img.naturalWidth) begin()
+    else img.addEventListener('load', begin, { once: true })
+    const onVisibility = () => sandRef.current?.pause?.(!idleRef.current || document.hidden)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      img.removeEventListener('load', begin)
+      document.removeEventListener('visibilitychange', onVisibility)
+      sand?.stop?.()
+      sandRef.current = null
+    }
+  }, [reduced])
+
+  useEffect(() => {
+    sandRef.current?.pause?.(!idle || document.hidden)
+  }, [idle])
 
   // Let the hairlines finish drawing before three.js takes over.
   useEffect(() => {
@@ -211,7 +242,17 @@ const OrbitStage = forwardRef(function OrbitStage(
         onClick={onPortrait}
         tabIndex={idle ? 0 : -1}
       >
-        <img src={`${import.meta.env.BASE_URL}portrait-480.webp`} alt="" width="480" height="480" decoding="async" fetchPriority="high" draggable="false" />
+        <img
+          ref={portraitImg}
+          src={`${import.meta.env.BASE_URL}portrait-480.webp`}
+          alt=""
+          width="480"
+          height="480"
+          decoding="async"
+          fetchPriority="high"
+          draggable="false"
+        />
+        <canvas ref={sandCanvas} className="portrait-sand" aria-hidden="true" />
       </button>
 
       {works.map((work, i) => (

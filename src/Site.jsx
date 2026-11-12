@@ -5,6 +5,7 @@ import './site.css'
 import { makeOrbit } from './orbit/configs.js'
 import OrbitStage from './orbit/OrbitStage.jsx'
 import LishuName from './name/LishuName.jsx'
+import Seal from './name/Seal.jsx'
 import { PALETTE, useTheme } from './theme.js'
 import { ABOUT, SECTIONS, STATEMENT } from './content.js'
 import { currentRoute, go, hrefFor, onRoute, pushedHere } from './router.js'
@@ -441,9 +442,12 @@ export default function Site() {
       </svg>
 
       <header className="id">
-        <h1 style={{ margin: 0, display: 'contents' }}>
-          <LishuName animate={!reduced && initial == null} />
-        </h1>
+        <div className="id-name">
+          <h1 style={{ margin: 0, display: 'contents' }}>
+            <LishuName animate={!reduced && initial == null} />
+          </h1>
+          <Seal />
+        </div>
         <div className="id-text">
           <p className="id-en">Zixuan Li</p>
           <p className="id-role">Product designer, Dublin</p>
